@@ -109,10 +109,24 @@ def step5_evaluate_recommender():
     print(f"-> [OK] Đã lưu kết quả đo lường Offline vào {out_csv.name}.")
 
 
+def find_available_port(start_port: int = 8501) -> int:
+    """Tự động tìm cổng khả dụng nếu cổng mặc định đang bị chiếm dụng."""
+    import socket
+    for port in range(start_port, start_port + 20):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue
+    return start_port
+
+
 def step6_launch_dashboard():
     print_banner(6, "Khởi chạy Streamlit BI & OLAP Analytics Dashboard")
-    cmd = [sys.executable, "-m", "streamlit", "run", "src/ui/dashboard.py", "--server.port", "8501"]
-    print(f"Đang mở giao diện Streamlit tại: http://localhost:8501\n")
+    port = find_available_port(8501)
+    cmd = [sys.executable, "-m", "streamlit", "run", "src/ui/dashboard.py", "--server.port", str(port)]
+    print(f"Đang mở giao diện Streamlit tại: http://localhost:{port}\n")
     try:
         subprocess.run(cmd, check=True)
     except KeyboardInterrupt:
